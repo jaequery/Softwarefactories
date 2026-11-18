@@ -38,12 +38,17 @@ export async function getAdminConfig(): Promise<AdminConfig> {
   return { enabled: true, password, secret };
 }
 
+/** Session HMAC key: binds the secret and the password, so changing either signs every session out. */
+export function sessionKey(config: { password: string; secret: string }): string {
+  return `${config.secret}\u0000${config.password}`;
+}
+
 /** True when the request carries a valid, unexpired admin session cookie. */
 export async function isAdmin(): Promise<boolean> {
   const config = await getAdminConfig();
   if (!config.enabled) return false;
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  return verifySessionToken(token, config.secret);
+  return verifySessionToken(token, sessionKey(config));
 }
 
 /** For admin pages: redirect to the login page without a valid session. */
@@ -62,32 +67,30 @@ export async function getClientIp(): Promise<string> {
   return ip?.trim() || "unknown";
 }
 
-/** Milliseconds until `ip` may try again, or 0 if it is not locked out. */
-export async function lockoutRemainingMs(ip: string, now = Date.now()): Promise<number> {
-  const row = await (await getDB())
-    .prepare("SELECT failures, window_start FROM admin_login_attempts WHERE ip = ?1")
-    .bind(ip)
-    .first<{ failures: number; window_start: number }>();
-  if (!row || row.failures < MAX_FAILURES) return 0;
-  return Math.max(0, row.window_start + FAILURE_WINDOW_MS - now);
-}
-
-/** Count a failed attempt for `ip`, starting a new window when the previous one has expired. */
-export async function recordFailedLogin(ip: string, now = Date.now()): Promise<void> {
+/**
+ * Count this login attempt for `ip` before the password is checked, atomically (one upsert … RETURNING),
+ * so parallel requests cannot all slip under the limit. A new window starts once the previous one expired.
+ * Returns how long the IP must wait, or 0 if this attempt may proceed. A successful login clears the count.
+ */
+export async function reserveLoginAttempt(ip: string, now = Date.now()): Promise<number> {
   const db = await getDB();
-  await db.batch([
+  const [, upsert] = await db.batch<{ failures: number; window_start: number }>([
+    // Housekeeping: drop other IPs whose window has long expired.
+    db.prepare("DELETE FROM admin_login_attempts WHERE window_start < ?1 AND ip <> ?2").bind(now - 2 * FAILURE_WINDOW_MS, ip),
     db
       .prepare(
         `INSERT INTO admin_login_attempts (ip, failures, window_start) VALUES (?1, 1, ?2)
          ON CONFLICT(ip) DO UPDATE SET
            failures     = CASE WHEN ?2 - window_start >= ?3 THEN 1  ELSE failures + 1 END,
            window_start = CASE WHEN ?2 - window_start >= ?3 THEN ?2 ELSE window_start END,
-           updated_at   = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`,
+           updated_at   = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+         RETURNING failures, window_start`,
       )
       .bind(ip, now, FAILURE_WINDOW_MS),
-    // Housekeeping: drop other IPs whose window has long expired.
-    db.prepare("DELETE FROM admin_login_attempts WHERE window_start < ?1 AND ip <> ?2").bind(now - 2 * FAILURE_WINDOW_MS, ip),
   ]);
+  const row = upsert.results[0];
+  if (!row || row.failures <= MAX_FAILURES) return 0;
+  return Math.max(1, row.window_start + FAILURE_WINDOW_MS - now);
 }
 
 export async function clearFailedLogins(ip: string): Promise<void> {

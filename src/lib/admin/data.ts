@@ -155,12 +155,14 @@ export async function saveFactoryRecord(input: FactoryInput, id: number | null):
           )
           .bind(...factoryCols, id);
 
-  // The factory row is addressed by its (new) slug so the same statements work for create and update.
+  // On update the factory is addressed by id; on create by its new (UNIQUE) slug, inserted earlier in this same transaction.
+  const target = id === null ? "(SELECT id FROM factories WHERE slug = ?1)" : "?1";
+  const key = id === null ? f.slug : id;
   const reviewStmt = db
     .prepare(
       `INSERT INTO reviews (factory_id, overall_score, score_autonomy, score_quality, score_speed, score_value,
                             verdict, body_markdown, pros, cons, editors_pick, published)
-       VALUES ((SELECT id FROM factories WHERE slug = ?1), ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+       VALUES (${target}, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
        ON CONFLICT(factory_id) DO UPDATE SET
          overall_score = excluded.overall_score, score_autonomy = excluded.score_autonomy,
          score_quality = excluded.score_quality, score_speed = excluded.score_speed, score_value = excluded.score_value,
@@ -171,7 +173,7 @@ export async function saveFactoryRecord(input: FactoryInput, id: number | null):
          updated_at = ${NOW}`,
     )
     .bind(
-      f.slug,
+      key,
       f.overall_score,
       f.score_autonomy,
       f.score_quality,
@@ -191,12 +193,12 @@ export async function saveFactoryRecord(input: FactoryInput, id: number | null):
       db
         .prepare(
           `UPDATE reviews SET editors_pick = 0, updated_at = ${NOW}
-            WHERE editors_pick = 1 AND factory_id <> (SELECT id FROM factories WHERE slug = ?1)`,
+            WHERE editors_pick = 1 AND factory_id <> ${target}`,
         )
-        .bind(f.slug),
+        .bind(key),
     );
   }
-  stmts.push(db.prepare("SELECT id FROM factories WHERE slug = ?1").bind(f.slug));
+  stmts.push(db.prepare(`SELECT id FROM factories WHERE id = ${target}`).bind(key));
   const results = await db.batch<{ id: number }>(stmts);
   const saved = results[results.length - 1].results[0];
   if (!saved) throw new Error("Saved factory row not found");

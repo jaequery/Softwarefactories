@@ -43,13 +43,13 @@ The site owner adds, edits, publishes and deletes factories and their reviews at
 
 | Variable | Purpose |
 |---|---|
-| `ADMIN_PASSWORD` | The admin password checked at `/admin/login` (constant-time compare). **If unset, admin login is disabled**; the admin is never open by default. |
-| `ADMIN_SESSION_SECRET` | Secret that HMAC-signs the session cookie (use 32+ random characters, e.g. `openssl rand -base64 48`). Changing it signs everyone out. Login is also disabled while it is unset. |
+| `ADMIN_PASSWORD` | The admin password checked at `/admin/login` (constant-time compare). Changing it signs every session out. **If unset, admin login is disabled**; the admin is never open by default. |
+| `ADMIN_SESSION_SECRET` | Secret that HMAC-signs the session cookie (use 32+ random characters, e.g. `openssl rand -base64 48`). Changing it (or `ADMIN_PASSWORD`) signs every session out. Login is also disabled while it is unset or shorter than 32 characters. |
 
 - **Locally:** put both in `.dev.vars` (copy `.dev.vars.example`; `.dev.vars` is git-ignored). `npm run dev` reads them through the Cloudflare dev bindings.
 - **On Fredrin hosting:** set both as secrets under *Hosting → variables*. They are read at runtime, not at build. Never commit real values.
 - Signing in sets an `HttpOnly`, `Secure`, `SameSite=Lax` cookie signed with HMAC-SHA-256 (Web Crypto) that expires after 7 days. *Sign out* clears it.
-- Brute-force protection: every attempt waits ~400 ms, and after 5 failed attempts from one IP within 15 minutes further attempts are refused until the window passes (counts live in the `admin_login_attempts` table).
+- Brute-force protection: every attempt waits ~400 ms, and each IP gets 5 attempts per 15-minute window, counted atomically before the password is checked (so parallel requests can't exceed it) and reset by a successful login; further attempts are refused until the window passes (counts live in the `admin_login_attempts` table).
 - Every `/admin` page checks the session on the server and redirects to `/admin/login`; every server action that writes checks it again and answers **401** without a session.
 - Saving revalidates the public pages, so changes show on `/` and `/factories/<slug>` immediately, with no rebuild.
 

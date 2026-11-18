@@ -52,6 +52,11 @@ for i in 1 2 3 4 5; do login_as "wrong-$i" | grep -q "Wrong password" && ok "att
 log "failures recorded for $IP: $(d1_scalar "SELECT failures FROM admin_login_attempts WHERE ip='$IP'")"
 login_as "$ADMIN_PASSWORD" -D "$OUT/lockout.headers" > "$OUT/lockout.txt"; grep -q "Too many failed attempts" "$OUT/lockout.txt" && ! grep -qi "^set-cookie: sf_admin_session" "$OUT/lockout.headers" && ok "6th attempt (even the right password) is refused while locked out" || bad "no lockout after 5 failures"
 npx wrangler d1 execute DB --local --command "DELETE FROM admin_login_attempts WHERE ip='$IP'" >/dev/null 2>&1 && log "cleared test lockout row for $IP"
+IP="198.51.100.$((RANDOM % 250 + 1))"; log "parallel burst: 10 simultaneous wrong logins from $IP"
+for i in $(seq 1 10); do login_as "burst-$i" > "$OUT/burst-$i.txt" & done; wait
+W=$(cat "$OUT"/burst-*.txt | grep -c "Wrong password"); T=$(cat "$OUT"/burst-*.txt | grep -c "Too many failed attempts"); log "burst: $W checked the password, $T refused"
+[ "$W" = 5 ] && [ "$T" = 5 ] && ok "parallel burst: only 5 password checks per window" || bad "parallel burst let $W attempts through"
+npx wrangler d1 execute DB --local --command "DELETE FROM admin_login_attempts WHERE ip='$IP'" >/dev/null 2>&1
 
 log "== browser flow (drive-admin.mjs)"
 if BASE="$BASE" ADMIN_PASSWORD="$ADMIN_PASSWORD" node "$(dirname "$0")/drive-admin.mjs" "$OUT" | tee -a "$LOG"; [ "${PIPESTATUS[0]}" = 0 ]; then ok "browser flow"; else bad "browser flow"; fi

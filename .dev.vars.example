@@ -5,5 +5,5 @@
 ADMIN_PASSWORD=change-me-to-a-long-random-password
 
 # Secret used to HMAC-sign the admin session cookie (32+ random characters, e.g. `openssl rand -base64 48`).
-# Changing it signs every admin out.
+# Changing it (or ADMIN_PASSWORD) signs every admin out.
 ADMIN_SESSION_SECRET=change-me-to-32-or-more-random-characters

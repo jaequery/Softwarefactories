@@ -7,8 +7,8 @@ import {
   clearFailedLogins,
   getAdminConfig,
   getClientIp,
-  lockoutRemainingMs,
-  recordFailedLogin,
+  reserveLoginAttempt,
+  sessionKey,
 } from "@/lib/admin/auth";
 import { SESSION_COOKIE, SESSION_TTL_SECONDS, createSessionToken, timingSafeEqualStrings } from "@/lib/admin/session";
 
@@ -23,19 +23,18 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   // Every attempt pays a small delay, and an IP with too many recent failures is refused outright.
   await new Promise((r) => setTimeout(r, ATTEMPT_DELAY_MS));
   const ip = await getClientIp();
-  const waitMs = await lockoutRemainingMs(ip);
+  const waitMs = await reserveLoginAttempt(ip);
   if (waitMs > 0) {
     return { error: `Too many failed attempts. Try again in ${Math.ceil(waitMs / 60000)} minute(s).` };
   }
 
   const password = formData.get("password");
   if (typeof password !== "string" || !(await timingSafeEqualStrings(password, config.password))) {
-    await recordFailedLogin(ip);
     return { error: "Wrong password." };
   }
 
   await clearFailedLogins(ip);
-  (await cookies()).set(SESSION_COOKIE, await createSessionToken(config.secret), {
+  (await cookies()).set(SESSION_COOKIE, await createSessionToken(sessionKey(config)), {
     httpOnly: true,
     secure: true,
     sameSite: "lax",

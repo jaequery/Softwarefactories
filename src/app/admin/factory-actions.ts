@@ -39,6 +39,8 @@ export async function saveFactory(prev: FactoryFormState, formData: FormData): P
     if (String(e).includes("UNIQUE constraint failed: factories.slug")) {
       return { values, errors: { slug: ["Another factory already uses this slug."] }, message: "Fix the highlighted fields.", attempt };
     }
+    // The factory was deleted between the existence check and the save.
+    if (id !== null && String(e).includes("FOREIGN KEY constraint failed")) return { values, message: "This factory no longer exists.", attempt };
     throw e;
   }
   revalidatePublic();
