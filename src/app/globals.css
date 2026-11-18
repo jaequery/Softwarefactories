@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #07090d;
+  --color-panel: #0d1117;
+  --color-line: #1c2430;
+  --color-text: #e6edf3;
+  --color-mute: #7d8a99;
+  --color-neon: #39ff9f;
+  --color-cyan: #22d3ee;
+  --color-amber: #fbbf24;
+  --color-pink: #f472b6;
+  --color-track: #18202b;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html {
+  background: var(--color-bg);
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* Faint 40px grid behind everything. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--color-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, var(--color-neon), var(--color-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bar-fill {
+  background: linear-gradient(90deg, var(--color-neon), var(--color-cyan));
+}
+
+/* Ranked list: stacked card on phones, 5-column table row from md up. */
+.factory-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  grid-template-areas:
+    "rank name  score"
+    "type type  type"
+    "bars bars  bars";
+  column-gap: 12px;
+  row-gap: 14px;
+  align-items: center;
+}
+.factory-row > .area-rank { grid-area: rank; }
+.factory-row > .area-name { grid-area: name; }
+.factory-row > .area-type { grid-area: type; }
+.factory-row > .area-bars { grid-area: bars; }
+.factory-row > .area-score { grid-area: score; }
+
+@media (min-width: 768px) {
+  .factory-row,
+  .factory-head {
+    grid-template-columns: 48px 1.6fr 1fr 1.3fr 90px;
+    grid-template-areas: "rank name type bars score";
+    column-gap: 0;
+    row-gap: 0;
+  }
+}
+
+.factory-pick {
+  border-color: rgb(57 255 159 / 0.45);
+  box-shadow: 0 0 0 1px rgb(57 255 159 / 0.15), 0 0 40px rgb(57 255 159 / 0.07);
+}

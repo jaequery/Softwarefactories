@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "softwarefactories",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "softwarefactories"
+    }
+  ],
+  "d1_databases": [
+    {
+      // Read in code via getCloudflareContext().env.DB.
+      // Placeholder id: Fredrin hosting provisions the real D1 database on first deploy and wires it here.
+      "binding": "DB",
+      "database_name": "softwarefactories",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ]
+}
