@@ -45,6 +45,7 @@ next-env.d.ts
 /.open-next/
 /.wrangler/
 .dev.vars*
+!.dev.vars.example
 
 # local agent/session files
 /.claude/settings.local.json

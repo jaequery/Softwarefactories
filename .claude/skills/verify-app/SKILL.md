@@ -18,11 +18,13 @@ bash .claude/skills/verify-app/scripts/launch.sh          # PORT=3000 by default
 This script:
 1. runs `npm install` if `node_modules` is missing;
 2. **deletes `.wrangler/state`** (local D1 only, never the remote database);
-3. runs `npm run db:migrate:local`, which applies `migrations/0001_init.sql` and `0002_seed.sql`;
+3. runs `npm run db:migrate:local`, which applies `migrations/0001_init.sql`, `0002_seed.sql` and `0003_admin_login_attempts.sql`;
 4. starts `npm run dev` in the background and writes its PID to `verify-evidence/.dev.pid` and its log to `verify-evidence/dev.log`;
 5. waits until **ready**: `GET /` returns 200 **and** the HTML contains at least one `data-testid="factory-row"`, as many as the seeded rows. It fails after 120s.
 
 If port 3000 is already taken, set `PORT=3100` for every script.
+
+To drive the admin, create `.dev.vars` (copy `.dev.vars.example`; see `features/admin.md`) **before** launching: the dev server reads it only at start.
 
 ## 2. Doctor (read-only)
 
@@ -37,7 +39,10 @@ Prints the node, npm, next and wrangler versions; the local migration status (`w
 ```bash
 bash .claude/skills/verify-app/scripts/drive.sh            # HTTP + DOM assertions, exits non-zero on failure
 node .claude/skills/verify-app/scripts/screenshot.mjs      # real-browser screenshots (desktop 1280, phone 390)
+bash .claude/skills/verify-app/scripts/drive-admin.sh      # /admin: redirects + 401s by curl, lockout, then the browser flow
 ```
+
+`drive-admin.sh` needs `.dev.vars` and Playwright; see `features/admin.md`.
 
 `drive.sh` makes real requests against the running dev server and asserts on the rendered HTML. See `features/` for each feature's routes, selectors and expectations.
 
@@ -81,6 +86,6 @@ One file per top feature in `features/`:
 - `features/home-listing.md`: home listing, search, category filter, sort, row links, empty state (**live**)
 - `features/factory-page.md`: `/factories/[slug]` review page (**live**)
 - `features/compare.md`: `/compare`, `/methodology`, `/about`, `sitemap.xml`, `robots.txt` (**live**)
-- `features/admin.md`: password-protected `/admin` (stub, not built yet)
+- `features/admin.md`: password-protected `/admin`: login, create/edit/publish/delete, 401s without a session (**live**, `scripts/drive-admin.sh`)
 
 When a later ticket builds one of these, fill in its file and extend `drive.sh`.
