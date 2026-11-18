@@ -83,3 +83,13 @@ body::before {
   border-color: rgb(57 255 159 / 0.45);
   box-shadow: 0 0 0 1px rgb(57 255 159 / 0.15), 0 0 40px rgb(57 255 159 / 0.07);
 }
+
+/* Compare: --n factory columns; on phones the row label sits on its own line above the cells. */
+.compare-row {
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+}
+@media (min-width: 768px) {
+  .compare-row {
+    grid-template-columns: 160px repeat(var(--n), minmax(0, 1fr));
+  }
+}

@@ -50,10 +50,49 @@ grep -q 'data-testid="empty-state"' "$OUT/empty.html" && [ "$(nrows empty)" = 0 
 
 log "== row links"
 for s in $(slugs home | head -3); do
-  fetch "factory-$s" "/factories/$s"; [ "$(cat "$OUT/factory-$s.status")" = 200 ] && ok "/factories/$s -> 200" || bad "/factories/$s"
+  fetch "row-$s" "/factories/$s"; [ "$(cat "$OUT/row-$s.status")" = 200 ] && ok "row link /factories/$s -> 200" || bad "/factories/$s"
 done
+
+log "== factory review pages (every published slug)"
+ALL=$(d1 "SELECT f.slug FROM factories f JOIN reviews r ON r.factory_id=f.id AND r.published=1 ORDER BY f.slug" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>JSON.parse(s)[0].results.forEach(r=>console.log(r.slug)))')
+for s in $ALL; do
+  fetch "factory-$s" "/factories/$s"; H="$OUT/factory-$s.html"
+  SC=$(d1_scalar "SELECT printf('%.1f', r.overall_score) FROM reviews r JOIN factories f ON f.id=r.factory_id WHERE f.slug='$s'")
+  [ "$(cat "$OUT/factory-$s.status")" = 200 ] \
+    && grep -q "data-testid=\"factory-page\" data-slug=\"$s\"" "$H" \
+    && grep -q "data-testid=\"score\">$SC<" "$H" \
+    && [ "$(grep -o 'data-testid="score-bar"' "$H" | wc -l | tr -d ' ')" = 4 ] \
+    && grep -q 'data-testid="verdict"' "$H" && grep -q 'data-testid="pros-cons"' "$H" \
+    && grep -q 'data-testid="pros"' "$H" && grep -q 'data-testid="cons"' "$H" \
+    && grep -q 'data-testid="pricing"' "$H" && grep -q 'data-testid="reviewed-at"' "$H" \
+    && grep -q 'rel="noopener nofollow"' "$H" && grep -q '<meta property="og:title"' "$H" \
+    && grep -q "/compare?f=$s," "$H" \
+    && ok "/factories/$s: score $SC, 4 bars, verdict, body, pros/cons, pricing, meta" || bad "/factories/$s incomplete"
+done
+PICK=$(d1_scalar "SELECT f.slug FROM factories f JOIN reviews r ON r.factory_id=f.id WHERE r.published=1 AND r.editors_pick=1 LIMIT 1")
+grep -q 'data-testid="editors-pick"' "$OUT/factory-$PICK.html" && ok "editor's pick badge on /factories/$PICK" || bad "no editor's pick badge on $PICK"
 fetch factory-missing "/factories/does-not-exist"; [ "$(cat "$OUT/factory-missing.status")" = 404 ] && ok "unknown slug -> 404" || bad "unknown slug not 404"
-for p in compare methodology about; do fetch "page-$p" "/$p"; [ "$(cat "$OUT/page-$p.status")" = 200 ] && ok "/$p -> 200" || bad "/$p"; done
+
+log "== compare"
+read -r A B C <<<"$(echo $ALL | cut -d' ' -f1-3)"
+fetch compare-2 "/compare?f=$A,$B"
+grep -q 'data-testid="compare-table" data-count="2"' "$OUT/compare-2.html" && [ "$(grep -o 'data-testid="compare-col"' "$OUT/compare-2.html" | wc -l | tr -d ' ')" = 2 ] && ok "?f=$A,$B -> 2 columns" || bad "compare 2 failed"
+fetch compare-3 "/compare?f=$A,$B,$C"
+grep -q 'data-testid="compare-table" data-count="3"' "$OUT/compare-3.html" && [ "$(grep -o 'data-testid="compare-col"' "$OUT/compare-3.html" | wc -l | tr -d ' ')" = 3 ] && ok "?f=$A,$B,$C -> 3 columns" || bad "compare 3 failed"
+[ "$(grep -o 'data-best="true"' "$OUT/compare-3.html" | wc -l | tr -d ' ')" -ge 5 ] && ok "best cell highlighted in each score row" || bad "best-in-row highlight missing"
+CODE=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "$BASE/compare?f=$A&f=$B&f="); log "GET /compare?f=$A&f=$B&f= -> $CODE"
+[ "$CODE" = "307 $BASE/compare?f=$A,$B" ] && ok "selector form URL normalised to ?f=$A,$B" || bad "form URL not normalised ($CODE)"
+fetch compare-empty "/compare"; grep -q 'data-testid="suggested-pairs"' "$OUT/compare-empty.html" && grep -q 'data-testid="compare-form"' "$OUT/compare-empty.html" && ok "/compare shows selector + suggested pairs" || bad "/compare empty state"
+
+log "== static pages"
+for p in methodology about; do fetch "page-$p" "/$p"; [ "$(cat "$OUT/page-$p.status")" = 200 ] && grep -q "data-testid=\"$p\"" "$OUT/page-$p.html" && ok "/$p -> 200" || bad "/$p"; done
+grep -q 'set by hand' "$OUT/page-methodology.html" && grep -q 'data-testid="formula"' "$OUT/page-methodology.html" && ok "methodology states the overall formula" || bad "methodology formula missing"
+
+log "== sitemap / robots"
+fetch sitemap "/sitemap.xml"; MISSING=0
+for s in $ALL; do grep -q "<loc>$BASE/factories/$s</loc>" "$OUT/sitemap.html" || { MISSING=1; log "  missing $s"; }; done
+[ "$(cat "$OUT/sitemap.status")" = 200 ] && [ "$MISSING" = 0 ] && ok "sitemap.xml lists all $(echo $ALL | wc -w | tr -d ' ') published factories" || bad "sitemap incomplete"
+fetch robots "/robots.txt"; grep -q "Sitemap: $BASE/sitemap.xml" "$OUT/robots.html" && ok "robots.txt points at the sitemap" || bad "robots.txt"
 
 echo "after:  $(counts | tr '\n' ' ')" >> "$OUT/side-effects.txt"
 log "== side effects (D1 row counts must be unchanged)"; cat "$OUT/side-effects.txt" | tee -a "$LOG"
