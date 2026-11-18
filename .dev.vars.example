@@ -1,0 +1,9 @@
+# Copy to .dev.vars for local development (`npm run dev` and `wrangler dev` read it). Never commit .dev.vars.
+# On Fredrin hosting, set both as secrets under Hosting → variables; they are read at runtime, not at build.
+
+# The single admin password for /admin/login. If unset, admin login is disabled.
+ADMIN_PASSWORD=change-me-to-a-long-random-password
+
+# Secret used to HMAC-sign the admin session cookie (32+ random characters, e.g. `openssl rand -base64 48`).
+# Changing it (or ADMIN_PASSWORD) signs every admin out.
+ADMIN_SESSION_SECRET=change-me-to-32-or-more-random-characters
