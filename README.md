@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Software Factories
 
-## Getting Started
+Independent, editorial reviews of every AI "software factory" on the internet: the autonomous coding agents and platforms that turn tickets or prompts into shipped code. Only the site owner writes reviews; visitors read them.
 
-First, run the development server:
+**Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · Cloudflare D1 (SQLite) · [OpenNext for Cloudflare](https://opennext.js.org/cloudflare)
+
+## Local setup (no Docker)
+
+Requirements: Node 20+ and npm.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run db:migrate:local   # creates the local D1 in .wrangler/state and applies migrations/ (schema + seed)
+npm run dev                # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`next.config.ts` calls `initOpenNextCloudflareForDev()`, so `npm run dev` gets the same Cloudflare bindings as production. Server components read the database with `getCloudflareContext().env.DB` (see `src/lib/db.ts`), and locally that binding is the wrangler D1 in `.wrangler/state`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To start over from an empty database, run `rm -rf .wrangler/state && npm run db:migrate:local`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | What it does |
+|---|---|
+| `npm run dev` | Next.js dev server with local D1 bindings |
+| `npm run build` | `next build` |
+| `npm run preview` | OpenNext Cloudflare build, then a local `wrangler` preview of the Worker |
+| `npm run build:cf` | OpenNext Cloudflare build only (`.open-next/`) |
+| `npm run db:migrate:local` | Apply `migrations/` to the local D1 |
+| `npm run db:migrate:remote` | Apply `migrations/` to the hosted D1 |
+| `npm run lint` / `npm run typecheck` | ESLint / route type generation + `tsc --noEmit` |
+| `npm run cf-typegen` | Regenerate `cloudflare-env.d.ts` after editing `wrangler.jsonc` |
 
-## Learn More
+## Database
 
-To learn more about Next.js, take a look at the following resources:
+- `migrations/0001_init.sql` holds the schema: `factories` and `reviews` (one current editorial review per factory), with indexes on slug, category and overall score.
+- `migrations/0002_seed.sql` seeds 12 real AI software factories, researched on each product's own site in November 2026. Fields that could not be verified are left empty. **The seeded scores are drafts** ("Draft score: pending hands-on review") until the owner edits them.
+- To change data, add a new numbered migration (`0003_….sql`). Do not edit migrations that have already been applied to the hosted database.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploying: Fredrin hosting
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The site deploys on **Fredrin hosting** (`<name>.fredrin.dev`), which runs Next.js on Cloudflare Workers through OpenNext. It is not deployed to Vercel.
 
-## Deploy on Vercel
+- The database is **Cloudflare D1**, bound to the Worker as **`env.DB`** (`d1_databases` in `wrangler.jsonc`). The `database_id` there is a placeholder: Fredrin provisions the hosted D1 database on the first deploy that stores data and wires in the real id. No outside database is used (no Turso, Supabase, Neon or Postgres).
+- Migrations are applied with `wrangler d1 migrations apply DB --remote` (`npm run db:migrate:remote`).
+- Pages query D1 on every request (`dynamic = "force-dynamic"`), so edits show up without a rebuild.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Verifying changes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The `verify-app` skill (`.claude/skills/verify-app/`, mirrored in `.agents/skills/verify-app/`) launches the site from an empty local D1, health-checks it, drives search, filters, sort and row links, captures screenshots and DOM evidence into `verify-evidence/`, and cleans up after itself. Start with its `SKILL.md`.
