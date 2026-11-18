@@ -17,7 +17,7 @@ INSERT INTO factories (slug, name, tagline, description, website_url, logo_url, 
   ('bolt-new', 'Bolt.new', 'AI builder for websites and apps without coding', 'Bolt is an AI-powered builder that creates websites and apps from prompts, with hosting and databases included. Usage is measured in tokens, which cover reading prompts, planning and writing code.', 'https://bolt.new', NULL, 'platform', 'Free (1M tokens/mo); Pro $25/mo; Teams $30/member/mo; Enterprise custom', 0, '2026-11-18T00:00:00.000Z', '2026-11-18T00:00:00.000Z');
 
 INSERT INTO reviews (factory_id, overall_score, score_autonomy, score_quality, score_speed, score_value, verdict, body_markdown, pros, cons, editors_pick, published, reviewed_at, updated_at) VALUES
-  ((SELECT id FROM factories WHERE slug = 'factory'), 8.8, 9.2, 8.8, 8.6, 8.4, 'Draft score: pending hands-on review.', '**Draft score: pending hands-on review.**
+  ((SELECT id FROM factories WHERE slug = 'factory'), 8.9, 9.4, 9, 8.8, 8.4, 'Draft score: pending hands-on review.', '**Draft score: pending hands-on review.**
 
 Factory offers AI agents for software development, available as a desktop app, a CLI and an SDK. It supports frontier and open-weight models such as GPT-5, Claude and Gemini, and its enterprise plans include on-premise deployment.
 
