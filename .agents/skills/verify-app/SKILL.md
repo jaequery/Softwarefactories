@@ -55,12 +55,14 @@ Stable selectors (on the home page):
 | row score | `[data-testid=score]` |
 | empty state | `[data-testid=empty-state]` |
 
+Selectors for the review and compare pages are in `features/factory-page.md` and `features/compare.md`.
+
 ## 4. Evidence
 
 Each drive writes `verify-evidence/<run-id>/`:
 - `drive.log`: every request (URL, HTTP status) and assertion result, which covers the action taken and the resulting state;
 - `*.html`: the raw HTML for each driven URL (DOM/text evidence);
-- `*.png`: screenshots from `screenshot.mjs` (`home-1280.png`, `home-390.png`, `search-*.png`, `chip-*.png`, `empty-*.png`);
+- `*.png`: screenshots from `screenshot.mjs` (`home-1280.png`, `home-390.png`, `search-*.png`, `chip-*.png`, `empty-*.png`, `factory-1280.png`, `factory-390.png`, `compare-1280.png`, `compare-390.png`, `compare-empty-1280.png`); it also drives the compare selector for 2 and then 3 factories;
 - `side-effects.txt`: D1 row counts before and after driving. The home page is read-only, so the counts must be identical.
 
 To attach evidence to a Fredrin ticket, run `./.fredrin/fredrin ticket upload <png> --kind after --pair home`.
@@ -77,8 +79,8 @@ This kills **only** the process tree whose PID `launch.sh` recorded (never `pkil
 
 One file per top feature in `features/`:
 - `features/home-listing.md`: home listing, search, category filter, sort, row links, empty state (**live**)
-- `features/factory-page.md`: `/factories/[slug]` (stub, currently a placeholder)
-- `features/compare.md`: `/compare`, `/methodology`, `/about` (stub, placeholders)
+- `features/factory-page.md`: `/factories/[slug]` review page (**live**)
+- `features/compare.md`: `/compare`, `/methodology`, `/about`, `sitemap.xml`, `robots.txt` (**live**)
 - `features/admin.md`: password-protected `/admin` (stub, not built yet)
 
 When a later ticket builds one of these, fill in its file and extend `drive.sh`.

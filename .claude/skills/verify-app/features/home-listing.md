@@ -11,7 +11,7 @@
 | Category | `GET /?category=<autonomous-agent\|platform\|ide-agent\|open-source\|cli-agent>`, or click `a[data-category=…]` | only that category; the chip has `aria-current="true"` |
 | Sort | `GET /?sort=score\|name\|newest`, or `[data-testid=sort-select]` | the order changes; unknown values fall back to `score` |
 | Empty state | `GET /?q=zzzz` | `[data-testid=empty-state]` with a "clear filters" link to `/` |
-| Row links | click a row | `/factories/<slug>` returns 200 (placeholder page); an unknown slug returns 404 |
+| Row links | click a row | `/factories/<slug>` returns 200 (review page); an unknown slug returns 404 |
 | Responsive | screenshot at 390px | rows stack: rank, name and score on top, then type badge, then bars |
 
 Side effects: none. The page is read-only, so D1 row counts are unchanged (checked by `drive.sh`).

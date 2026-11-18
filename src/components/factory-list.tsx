@@ -3,7 +3,7 @@ import { categoryLabel, type ListingRow } from "@/lib/factories";
 
 const TILE_COLORS = ["bg-neon", "bg-cyan", "bg-pink", "bg-amber"];
 
-function tileColor(slug: string): string {
+export function tileColor(slug: string): string {
   let h = 0;
   for (const ch of slug) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   return TILE_COLORS[h % TILE_COLORS.length];
