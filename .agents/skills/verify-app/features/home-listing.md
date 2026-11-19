@@ -8,7 +8,7 @@
 | Listing | `GET /` | 200; one `[data-testid=factory-row]` per published review; kicker `// N factories reviewed · updated Mon YYYY` |
 | Default sort | `GET /` | `[data-testid=score]` values descending; the editor's pick row has class `factory-pick` and an amber "editor's pick" label |
 | Search | `GET /?q=<text>`, or type in `[data-testid=search-input]` (URL updates after 250ms) | only rows whose name/tagline contains the text (case-insensitive) |
-| Category | `GET /?category=<autonomous-agent\|platform\|ide-agent\|open-source\|cli-agent>`, or click `a[data-category=…]` | only that category; the chip has `aria-current="true"` |
+| Category | `GET /?category=<autonomous-agent\|platform\|open-source>`, or click `a[data-category=…]`; the retired `cli-agent` and `ide-agent` fall back to all | only that category; the chip has `aria-current="true"` |
 | Sort | `GET /?sort=score\|name\|newest`, or `[data-testid=sort-select]` | the order changes; unknown values fall back to `score` |
 | Empty state | `GET /?q=zzzz` | `[data-testid=empty-state]` with a "clear filters" link to `/` |
 | Row links | click a row | `/factories/<slug>` returns 200 (review page); an unknown slug returns 404 |

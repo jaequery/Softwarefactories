@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const SUBS = [
-  ["autonomy", "How far it gets on its own: from a ticket or prompt to a reviewable change without hand-holding, including planning, running tests and recovering from its own mistakes."],
+  ["autonomy", "How far it gets on its own: from a ticket or issue to a reviewable change without hand-holding, including planning, running tests and recovering from its own mistakes."],
   ["quality", "Whether the code it ships is correct, idiomatic and maintainable, and whether it respects the existing codebase instead of rewriting around it."],
   ["speed", "Wall-clock time from task to usable result, and how much it can run in parallel."],
   ["value", "What you get for the money: plan prices, usage limits, bring-your-own-model options and how predictable the bill is."],
@@ -26,10 +26,10 @@ export default function MethodologyPage() {
     >
       <H2>What counts as a software factory</H2>
       <p>
-        A software factory is an AI agent or platform that turns a ticket, an issue or a plain-language prompt into
-        shipped code: it reads the codebase, makes the change, runs it, and hands back a pull request, a branch or a
-        deployed app. Autocomplete and chat assistants that only suggest snippets are out of scope; agents that
-        work in the terminal, the IDE, the cloud or a dedicated app are in.
+        A software factory is an AI agent or platform that takes a ticket, an issue or a task and works on it
+        unattended: it reads the codebase, makes the change, runs it, and hands back a pull request or merged code.
+        Out of scope: autocomplete and chat assistants, interactive coding tools you drive turn by turn in a terminal
+        or editor (such as Claude Code, Codex CLI or Cursor), and prompt-to-app website and app builders.
       </p>
 
       <H2>The four sub-scores</H2>

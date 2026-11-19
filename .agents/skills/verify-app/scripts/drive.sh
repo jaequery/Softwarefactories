@@ -30,7 +30,7 @@ EXP=$(d1_scalar "SELECT COUNT(*) FROM factories f JOIN reviews r ON r.factory_id
 [ "$(nrows search)" = "$EXP" ] && [ "$EXP" -ge 1 ] && ok "?q=$NAME -> $EXP row(s)" || bad "?q=$NAME rows $(nrows search) != $EXP"
 
 log "== category filter"
-for c in autonomous-agent platform ide-agent open-source cli-agent; do
+for c in autonomous-agent platform open-source; do
   fetch "cat-$c" "/?category=$c"
   EXP=$(d1_scalar "SELECT COUNT(*) FROM factories f JOIN reviews r ON r.factory_id=f.id AND r.published=1 WHERE f.category='$c'")
   [ "$(nrows "cat-$c")" = "$EXP" ] && ok "?category=$c -> $EXP row(s)" || bad "?category=$c rows $(nrows "cat-$c") != $EXP"
@@ -43,6 +43,7 @@ EXPN=$(d1 "SELECT f.slug FROM factories f JOIN reviews r ON r.factory_id=f.id AN
 [ "$(slugs sort-name)" = "$EXPN" ] && ok "?sort=name is A–Z" || bad "?sort=name order wrong"
 fetch sort-newest "/?sort=newest"; [ "$(nrows sort-newest)" = "$TOTAL" ] && ok "?sort=newest lists all" || bad "?sort=newest rows"
 fetch sort-bogus "/?sort=bogus&category=bogus"; [ "$(nrows sort-bogus)" = "$TOTAL" ] && ok "unknown sort/category fall back to defaults" || bad "fallback failed"
+for c in cli-agent ide-agent; do fetch "cat-$c" "/?category=$c"; [ "$(nrows "cat-$c")" = "$TOTAL" ] && ok "retired ?category=$c falls back to all" || bad "?category=$c rows $(nrows "cat-$c") != $TOTAL"; done
 
 log "== empty state"
 fetch empty "/?q=zzzz-no-such-factory"
