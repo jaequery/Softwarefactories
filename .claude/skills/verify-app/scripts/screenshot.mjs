@@ -53,7 +53,7 @@ try {
     await p.goto(`${BASE}/factories/${slug}`, { waitUntil: "networkidle" });
     note(`factory ${slug} @${width}: ${await p.locator("[data-testid=score-bar]").count()} score bars, pros-cons visible: ${await p.locator("[data-testid=pros-cons]").isVisible()}`);
     await p.screenshot({ path: `${out}/factory-${width}.png`, fullPage: true });
-    await p.goto(`${BASE}/compare?f=factory,devin,claude-code`, { waitUntil: "networkidle" });
+    await p.goto(`${BASE}/compare?f=factory,devin,google-jules`, { waitUntil: "networkidle" });
     note(`compare @${width}: ${await p.locator("[data-testid=compare-col]").count()} columns`);
     await p.screenshot({ path: `${out}/compare-${width}.png`, fullPage: true });
     await p.close();
@@ -63,13 +63,13 @@ try {
   await page.goto(`${BASE}/compare`, { waitUntil: "networkidle" });
   note(`compare empty: ${await page.locator("[data-testid=suggested-pairs] a").count()} suggested pairs`);
   await page.screenshot({ path: `${out}/compare-empty-1280.png`, fullPage: true });
-  await page.selectOption("[data-testid=compare-select-1]", "cursor");
+  await page.selectOption("[data-testid=compare-select-1]", "devin");
   await page.selectOption("[data-testid=compare-select-2]", "openhands");
-  await Promise.all([page.waitForURL(/\/compare\?f=cursor,openhands$/, { timeout: 15000 }), page.click("[data-testid=compare-submit]")]);
+  await Promise.all([page.waitForURL(/\/compare\?f=devin,openhands$/, { timeout: 15000 }), page.click("[data-testid=compare-submit]")]);
   await page.waitForLoadState("networkidle");
   note(`selector 2 -> ${page.url()} -> ${await page.locator("[data-testid=compare-col]").count()} columns`);
-  await page.selectOption("[data-testid=compare-select-3]", "lovable");
-  await Promise.all([page.waitForURL(/\/compare\?f=cursor,openhands,lovable$/, { timeout: 15000 }), page.click("[data-testid=compare-submit]")]);
+  await page.selectOption("[data-testid=compare-select-3]", "fredrin");
+  await Promise.all([page.waitForURL(/\/compare\?f=devin,openhands,fredrin$/, { timeout: 15000 }), page.click("[data-testid=compare-submit]")]);
   await page.waitForLoadState("networkidle");
   note(`selector 3 -> ${page.url()} -> ${await page.locator("[data-testid=compare-col]").count()} columns`);
 } finally {

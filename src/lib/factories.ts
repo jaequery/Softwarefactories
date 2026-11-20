@@ -3,9 +3,7 @@ import { getDB } from "./db";
 export const CATEGORIES = [
   { value: "autonomous-agent", label: "autonomous agent" },
   { value: "platform", label: "platform" },
-  { value: "ide-agent", label: "ide agent" },
   { value: "open-source", label: "open source" },
-  { value: "cli-agent", label: "cli agent" },
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number]["value"];
