@@ -78,7 +78,7 @@ try {
   await page.fill("#f-website_url", "https://example.com/verify");
   await page.fill("#f-tagline", "Created by the verify-app admin drive");
   await page.fill("#f-description", "A throwaway factory written through /admin.");
-  await page.selectOption("#f-category", "cli-agent");
+  await page.selectOption("#f-category", "open-source");
   await page.fill("#f-pricing_summary", "Free");
   for (const [k, v] of [["overall_score", "9.9"], ["score_autonomy", "9.5"], ["score_quality", "9"], ["score_speed", "8.5"], ["score_value", "10"]]) await page.fill(`#f-${k}`, v);
   await page.fill("#f-verdict", "Verified end to end.");

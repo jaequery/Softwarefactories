@@ -1,6 +1,6 @@
 # Software Factories
 
-Independent, editorial reviews of every AI "software factory" on the internet: the autonomous coding agents and platforms that turn tickets or prompts into shipped code. Only the site owner writes reviews; visitors read them.
+Independent, editorial reviews of every AI "software factory" on the internet: the autonomous coding agents and platforms that take a ticket or issue and deliver a pull request or merged code on their own. Only the site owner writes reviews; visitors read them.
 
 **Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · Cloudflare D1 (SQLite) · [OpenNext for Cloudflare](https://opennext.js.org/cloudflare)
 
@@ -35,7 +35,8 @@ To start over from an empty database, run `rm -rf .wrangler/state && npm run db:
 - `migrations/0001_init.sql` holds the schema: `factories` and `reviews` (one current editorial review per factory), with indexes on slug, category and overall score.
 - `migrations/0002_seed.sql` seeds 12 real AI software factories, researched on each product's own site in November 2026. Fields that could not be verified are left empty. **The seeded scores are drafts** ("Draft score: pending hands-on review") until the owner edits them.
 - `migrations/0003_admin_login_attempts.sql` adds `admin_login_attempts`, the per-IP failed-login counter behind the admin's brute-force limit.
-- To change data, add a new numbered migration (`0003_….sql`). Do not edit migrations that have already been applied to the hosted database.
+- `migrations/0004_remove_non_factories.sql` removes the 6 seeded listings that are not software factories (Claude Code, OpenAI Codex, Cursor, Replit Agent, Lovable, Bolt.new) and their reviews, leaving 6. It deletes by slug only.
+- To change data, add a new numbered migration (`0005_….sql`). Do not edit migrations that have already been applied to the hosted database.
 
 ## Admin (`/admin`)
 

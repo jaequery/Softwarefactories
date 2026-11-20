@@ -15,7 +15,7 @@ export default function AboutPage() {
       testid="about"
       kicker="// about"
       title="About Software Factories"
-      lede="An independent guide to the AI agents and platforms that turn tickets and prompts into shipped code."
+      lede="An independent guide to the AI agents and platforms that take a ticket or issue and deliver a pull request or merged code on their own."
     >
       <p>
         New AI software factories launch every month, and their landing pages all promise the same thing. This site
