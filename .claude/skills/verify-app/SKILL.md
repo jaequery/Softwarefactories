@@ -18,7 +18,7 @@ bash .claude/skills/verify-app/scripts/launch.sh          # PORT=3000 by default
 This script:
 1. runs `npm install` if `node_modules` is missing;
 2. **deletes `.wrangler/state`** (local D1 only, never the remote database);
-3. runs `npm run db:migrate:local`, which applies `migrations/0001_init.sql`, `0002_seed.sql`, `0003_admin_login_attempts.sql` and `0004_remove_non_factories.sql` (6 factories remain);
+3. runs `npm run db:migrate:local`, which applies `migrations/0001_init.sql`, `0002_seed.sql`, `0003_admin_login_attempts.sql`, `0004_remove_non_factories.sql` and `0005_add_factories.sql` (14 factories);
 4. starts `npm run dev` in the background and writes its PID to `verify-evidence/.dev.pid` and its log to `verify-evidence/dev.log`;
 5. waits until **ready**: `GET /` returns 200 **and** the HTML contains at least one `data-testid="factory-row"`, as many as the seeded rows. It fails after 120s.
 
