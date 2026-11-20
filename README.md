@@ -36,7 +36,8 @@ To start over from an empty database, run `rm -rf .wrangler/state && npm run db:
 - `migrations/0002_seed.sql` seeds 12 real AI software factories, researched on each product's own site in November 2026. Fields that could not be verified are left empty. **The seeded scores are drafts** ("Draft score: pending hands-on review") until the owner edits them.
 - `migrations/0003_admin_login_attempts.sql` adds `admin_login_attempts`, the per-IP failed-login counter behind the admin's brute-force limit.
 - `migrations/0004_remove_non_factories.sql` removes the 6 seeded listings that are not software factories (Claude Code, OpenAI Codex, Cursor, Replit Agent, Lovable, Bolt.new) and their reviews, leaving 6. It deletes by slug only.
-- To change data, add a new numbered migration (`0005_….sql`). Do not edit migrations that have already been applied to the hosted database.
+- `migrations/0005_add_factories.sql` adds 8 software factories (Paseo, Superconductor, Orca, Multica, Harness, Agentastic.dev, cmux, Guild), researched on each product's own site in November 2026, each with a draft review, leaving 14. It is safe to re-run: factories are `INSERT OR IGNORE` on the slug, and a review is only added to a factory that has none.
+- To change data, add a new numbered migration (`0006_….sql`). Do not edit migrations that have already been applied to the hosted database.
 
 ## Admin (`/admin`)
 
